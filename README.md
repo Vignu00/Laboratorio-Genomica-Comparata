@@ -24,3 +24,7 @@ wtdbg2 -x rs -g <EXPECTED_GENOMESIZE> -t <NUMBERS_OF_CORES> -i <FASTQ> -fo <OUT_
 wtdbg2 -x rs -g <EXPECTED_GENOMESIZE> -t 9 -i SRR11672506.fastq.gz -fo Anoste_raw
 ```
 
+```bash
+wtpoa-cns -t <NUMBER_OF_CORES> -i <LAYOUT_FILE-.ctg.lay.gz> -fo <OUT_PREFIX>
+wtpoa-cns -t 9 -i Anoste_raw.ctg.lay.gz> -fo Anoste_raw
+```

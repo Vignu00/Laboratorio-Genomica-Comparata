@@ -20,11 +20,13 @@ kat hist -t 8 -m 27 -o anoste_27 SRR11672503_1_paired.fastq SRR11672503_2_paired
 # Assembly
 
 ```bash
+# Comando per layout
 wtdbg2 -x rs -g <EXPECTED_GENOMESIZE> -t <NUMBERS_OF_CORES> -i <FASTQ> -fo <OUT_PREFIX> #Default parameters
 wtdbg2 -x rs -g <EXPECTED_GENOMESIZE> -t 9 -i SRR11672506.fastq.gz -fo Anoste_raw
 ```
 
 ```bash
+# Comando per consensus
 wtpoa-cns -t <NUMBER_OF_CORES> -i <LAYOUT_FILE-.ctg.lay.gz> -fo <OUT_PREFIX>
 wtpoa-cns -t 9 -i Anoste_raw.ctg.lay.gz> -fo Anoste_raw
 ```

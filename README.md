@@ -81,7 +81,8 @@ samtools index "$PREFIX"_sorted.bam
 ln -s ../00_Assembly_raw/Anoste_raw.fasta .
 ln -s ../../02_kmersurvey/SRR11672503_1_paired.fastq .
 ln -s ../../02_kmersurvey/SRR11672503_2_paired.fastq .
-
+conda activate assembly # SAM tool
+bash mapping.sh 8 Anoste_raw.fasta SRR11672503_1_paired.fastq SRR11672503_2_paired.fastq Anoste_pol
 
 
 

@@ -50,12 +50,12 @@ cd Laboratorio-Genomica-Comparata/03_GenomeAssembly/
 mkdir 01_polishing
 cd 01_polishing/
 nano mapping.sh # Creare e aprire file e incollare comandi (script)
-#!/bin/bash # Dentro file creato
 
 
 # Mapping short and long reads on assembly
 
 ```bash
+#!/bin/bash # Dentro file creato
 CPU=$1
 INPUT=$2
 SR_1=$3
@@ -96,7 +96,7 @@ ln -s ../00_Assembly_raw/Anoste_raw.fasta .
 ln -s ../../02_kmersurvey/SRR11672503_1_paired.fastq . #Short reads
 ln -s ../../02_kmersurvey/SRR11672503_2_paired.fastq .
 ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/00_data/00_reads/SRR11672506.fastq.gz . # Long reads
-conda activate assembly # SAM tool
+conda activate assembly # Si trova qui SAM tool
 
 ```bash
 # Attivare script

@@ -52,37 +52,55 @@ cd 01_polishing/
 nano mapping.sh # Creare e aprire file e incollare comandi (script)
 #!/bin/bash # Dentro file creato
 
-# Mapping short and long reads on assembly
-
-"$CPU"=$1
-"$INPUT"=$2
-"$SR_1"=$3
-"$SR_2"=$4
-"$PREFIX"=$5
 
 # Mapping short and long reads on assembly
-minimap2 -ax <PRESET_Options> --MD -t <cores_number> <target.fa> <fastq1> <fastq2> > <SAM_FILE>
-minimap2 -ax sr --MD -t "$CPU" "$INPUT" "$SR_1" "$SR_2" > "$PREFIX".sam
+
+```bash
+CPU=$1
+INPUT=$2
+SR_1=$3
+SR_2=$4
+PREFIX=$5
+LR=$6
+
+# Mapping SHORT reads
+# Mapping short on assembly
+minimap2 -ax sr --MD -t "$CPU" "$INPUT" "$SR_1" "$SR_2" > "$PREFIX"_sr.sam
 
 # Convertion SAM into BAM
-samtools view -b <SAM FILE> > <BAM FILE>
-samtools view -b "$PREFIX".sam > "$PREFIX".bam
+samtools view -b "$PREFIX"_sr.sam > "$PREFIX"_sr.bam
 
 # Rimuovere file SAM
-rm <SAM FILE>
-rm "$PREFIX".sam
+rm "$PREFIX"_sr.sam
 
 # Sorting and indexing of BAM file
-samtools sort -@<NUM_THREADS> -o <OUT_FILE> <INFILE>
-samtools index <INFILE>
-samtools sort -@"$CPU" -o "$PREFIX"_sorted.bam "$PREFIX".bam
-samtools index "$PREFIX"_sorted.bam
+samtools sort -@"$CPU" -o "$PREFIX"_sr_sorted.bam "$PREFIX"_sr.bam
+samtools index "$PREFIX"_sr_sorted.bam
+
+# Mapping LONG reads
+# Mapping long on assembly
+minimap2 -ax map-pb --MD -t "$CPU" "$INPUT" "$LR" > "$PREFIX"_lr.sam
+
+# Convertion SAM into BAM
+samtools view -b "$PREFIX"_lr.sam > "$PREFIX"_lr.bam
+
+# Rimuovere file SAM
+rm "$PREFIX"_lr.sam
+
+# Sorting and indexing of BAM file
+samtools sort -@"$CPU" -o "$PREFIX"_lr_sorted.bam "$PREFIX"_lr.bam
+samtools index "$PREFIX"_lr_sorted.bam
+```
 
 ln -s ../00_Assembly_raw/Anoste_raw.fasta .
-ln -s ../../02_kmersurvey/SRR11672503_1_paired.fastq .
+ln -s ../../02_kmersurvey/SRR11672503_1_paired.fastq . #Short reads
 ln -s ../../02_kmersurvey/SRR11672503_2_paired.fastq .
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/00_data/00_reads/SRR11672506.fastq.gz . # Long reads
 conda activate assembly # SAM tool
-bash mapping.sh 8 Anoste_raw.fasta SRR11672503_1_paired.fastq SRR11672503_2_paired.fastq Anoste_pol
 
+```bash
+# Attivare script
+bash mapping.sh 8 Anoste_raw.fasta SRR11672503_1_paired.fastq SRR11672503_2_paired.fastq Anoste_pol SRR11672506.fastq.gz
+```
 
 

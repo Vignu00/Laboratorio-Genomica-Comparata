@@ -19,7 +19,7 @@ kat hist -t 8 -m 27 -o anoste_27 SRR11672503_1_paired.fastq SRR11672503_2_paired
 
 # Assembly
 
-tmux a -s genome_assembly
+tmux a -t genome_assembly
 mkdir 03_GenomeAssembly
 cd 03_GenomeAssembly
 
@@ -45,7 +45,7 @@ export NUMEXPR_MAX_THREADS=80
 busco -m <MODE> -l <LINEAGE> -c <CPU_NUMBER> -o <OUTPUT_NAME> -i <INPUT>
 busco -m geno -l $BUSCO/diptera_odb12 -c 8 -o Anoste_raw -i Anoste_raw.fasta
 ```
-tmux new -s mapping
+tmux new -t mapping
 cd Laboratorio-Genomica-Comparata/03_GenomeAssembly/
 mkdir 01_polishing
 cd 01_polishing/
@@ -102,5 +102,27 @@ conda activate assembly # Si trova qui SAM tool
 # Attivare script
 bash mapping.sh 8 Anoste_raw.fasta SRR11672503_1_paired.fastq SRR11672503_2_paired.fastq Anoste_pol SRR11672506.fastq.gz
 ```
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/01_polishing/Anoste_raw_pb_sorted.bam .
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/01_polishing/Anoste_raw_pb_sorted.bam.bai .
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/01_polishing/Anoste_raw_sr_sorted.bam .
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/01_polishing/Anoste_raw_sr_sorted.bam.bai .
+rm Anoste_raw.fasta # Non copia link se c'è file con stesso nome
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/00_assembly_raw/Anoste_raw.fasta .
 
+```bash
+# Calcolo coverage sulle short reads
+mosdepth -n --fast-mode --by 500 sr_coverage Anoste_raw_sr_sorted.bam
+zcat sr_coverage.regions.bed.gz | awk '{sum += $4;count++} END {print sum / count}' > coverage_sr
+```
+nano polishing.sh # Creo nuovo script per polishing e controllo qualità
+
+# Polishing
+
+R1="/home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/02_KmerBased_GenomeSurvey/SRR11672503_1_paired.fastq"
+R2="/home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/02_KmerBased_GenomeSurvey/SRR11672503_2_paired.fastq"
+echo -e "$R1\n$R2" > reads.txt 
+
+```bash # Dentro file creato
+hypo -d <DRAFT_Contigs> -r @<READS_PATH> -s <APPROXIMATE_GENOMESIZE> -c <SHORT_READSCOVERAGE> -b <SORTED_BAM_SR> -B <SORTED_BAM_PB> -t <NUMBER_THREADS>
+hypo -d Anoste_raw.fasta -r @reads.txt -s 227054799 -c 136 -b Anoste_raw_sr_sorted.bam -B Anoste_raw_pb_sorted.bam -t 8
 

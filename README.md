@@ -142,3 +142,28 @@ busco -m geno -l $BUSCO/diptera_odb12 -c 9 -o Anoste_pol -i Anoste_pol.fasta
 conda activate kat
 kat comp -t 9 -o Anoste_pol_kat 'SRR11672503_1_paired.fastq SRR11672503_2_paired.fastq' Anoste_pol.fasta
 ```
+cd..
+mkdir 02_contaminants
+cd 02_contaminants/
+ln -s ../01_polishing/Anoste_pol.fasta .
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/02_contaminants/Anoste_pol_sorted.bam . # Link del re-mapping e annotazione tassonomica i quali non lanciamo 
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/02_contaminants/Anoste_pol_sorted.bam.bai .
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/02_contaminants/Anoste_blast.tsv .
+
+# Re-mapping short-reads (completa con dati da solo) (non lanciato)
+```bash
+minimap2 --secondary=no --MD -ax sr -t <NUMBER_CORE> <ASSEMBLY> <FASTQ_R1> <FASTQ_R2> | samtools view -Sb - > <OUT_BAMFILE>.bam
+samtools sort -@<n_cores> -o <OUT_SORTED_BAMFILE>_sorted.bam Anoste_pol.bam
+rm Anoste_pol.bam
+samtools index Anoste_pol_sorted.bam
+```
+
+# Taxonomic annotation of the contigs (non lanciato)
+```bash
+blastn -query <ASSEMBLY> -db <PATH/TO/nt/> -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' -max_target_seqs 25 -max_hsps 1 -num_threads 25 -evalue 1e-25 -out <OUTFILE>
+```
+
+# Construction a BlobDB data structure and assembly visualisation
+```bash
+blobtools create -i Anoste_pol.fasta -b Anoste_pol_sorted.bam -t Anoste_blast.tsv -o Anoste_blob # Sequence enviroment
+

@@ -93,9 +93,9 @@ samtools index "$PREFIX"_lr_sorted.bam
 ```
 
 ln -s ../00_Assembly_raw/Anoste_raw.fasta .
-ln -s ../../02_kmersurvey/SRR11672503_1_paired.fastq . #Short reads
+ln -s ../../02_kmersurvey/SRR11672503_1_paired.fastq . # Link short reads
 ln -s ../../02_kmersurvey/SRR11672503_2_paired.fastq .
-ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/00_data/00_reads/SRR11672506.fastq.gz . # Long reads
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/00_data/00_reads/SRR11672506.fastq.gz . # Link long reads
 conda activate assembly # Si trova qui SAM tool
 
 ```bash
@@ -122,7 +122,48 @@ R1="/home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/02_KmerBased_GenomeS
 R2="/home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/02_KmerBased_GenomeSurvey/SRR11672503_2_paired.fastq"
 echo -e "$R1\n$R2" > reads.txt 
 
-```bash # Dentro file creato
+```bash # Dentro file creato (Alla fine non abbiamo usato script perchè QC lanciato successivamente)
 hypo -d <DRAFT_Contigs> -r @<READS_PATH> -s <APPROXIMATE_GENOMESIZE> -c <SHORT_READSCOVERAGE> -b <SORTED_BAM_SR> -B <SORTED_BAM_PB> -t <NUMBER_THREADS>
 hypo -d Anoste_raw.fasta -r @reads.txt -s 227054799 -c 136 -b Anoste_raw_sr_sorted.bam -B Anoste_raw_pb_sorted.bam -t 8
+```
+mv hypo_Anoste_raw.fasta Anoste_pol.fasta # Cambiare denominazione del risultato di hypo
+
+```bash
+# BUSCO dopo polishing 
+conda activate sequence 
+export NUMEXPR_MAX_THREADS=80
+fold -w 80 Anoste_pol.fasta > Anoste_pol_multi.fasta # Per convertire file fasta in multi line di 80 (BUSCO non accetta single line)
+rm Anoste_pol.fasta
+mv Anoste_pol_multi.fasta Anoste_pol.fasta
+busco -m geno -l $BUSCO/diptera_odb12 -c 9 -o Anoste_pol -i Anoste_pol.fasta
+```
+```bash
+# Analisi QC kat
+conda activate kat
+kat comp -t 9 -o Anoste_pol_kat 'SRR11672503_1_paired.fastq SRR11672503_2_paired.fastq' Anoste_pol.fasta
+```
+cd..
+mkdir 02_contaminants
+cd 02_contaminants/
+ln -s ../01_polishing/Anoste_pol.fasta .
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/02_contaminants/Anoste_pol_sorted.bam . # Link del re-mapping e annotazione tassonomica i quali non lanciamo 
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/02_contaminants/Anoste_pol_sorted.bam.bai .
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/03_GenomeAssembly/02_contaminants/Anoste_blast.tsv .
+
+# Re-mapping short-reads (completa con dati da solo) (non lanciato)
+```bash
+minimap2 --secondary=no --MD -ax sr -t <NUMBER_CORE> <ASSEMBLY> <FASTQ_R1> <FASTQ_R2> | samtools view -Sb - > <OUT_BAMFILE>.bam
+samtools sort -@<n_cores> -o <OUT_SORTED_BAMFILE>_sorted.bam Anoste_pol.bam
+rm Anoste_pol.bam
+samtools index Anoste_pol_sorted.bam
+```
+
+# Taxonomic annotation of the contigs (non lanciato)
+```bash
+blastn -query <ASSEMBLY> -db <PATH/TO/nt/> -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' -max_target_seqs 25 -max_hsps 1 -num_threads 25 -evalue 1e-25 -out <OUTFILE>
+```
+
+# Construction a BlobDB data structure and assembly visualisation
+```bash
+blobtools create -i Anoste_pol.fasta -b Anoste_pol_sorted.bam -t Anoste_blast.tsv -o Anoste_blob # Sequence enviroment
 

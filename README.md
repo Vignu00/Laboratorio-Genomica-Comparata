@@ -93,9 +93,9 @@ samtools index "$PREFIX"_lr_sorted.bam
 ```
 
 ln -s ../00_Assembly_raw/Anoste_raw.fasta .
-ln -s ../../02_kmersurvey/SRR11672503_1_paired.fastq . #Short reads
+ln -s ../../02_kmersurvey/SRR11672503_1_paired.fastq . # Link short reads
 ln -s ../../02_kmersurvey/SRR11672503_2_paired.fastq .
-ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/00_data/00_reads/SRR11672506.fastq.gz . # Long reads
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/00_data/00_reads/SRR11672506.fastq.gz . # Link long reads
 conda activate assembly # Si trova qui SAM tool
 
 ```bash
@@ -122,7 +122,19 @@ R1="/home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/02_KmerBased_GenomeS
 R2="/home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/02_KmerBased_GenomeSurvey/SRR11672503_2_paired.fastq"
 echo -e "$R1\n$R2" > reads.txt 
 
-```bash # Dentro file creato
+```bash # Dentro file creato (Alla fine non abbiamo usato script perchè QC lanciato successivamente)
 hypo -d <DRAFT_Contigs> -r @<READS_PATH> -s <APPROXIMATE_GENOMESIZE> -c <SHORT_READSCOVERAGE> -b <SORTED_BAM_SR> -B <SORTED_BAM_PB> -t <NUMBER_THREADS>
 hypo -d Anoste_raw.fasta -r @reads.txt -s 227054799 -c 136 -b Anoste_raw_sr_sorted.bam -B Anoste_raw_pb_sorted.bam -t 8
+```
+mv hypo_Anoste_raw.fasta Anoste_pol.fasta # Cambiare denominazione del risultato di hypo
+
+conda activate sequence # BUSCO
+export NUMEXPR_MAX_THREADS=80
+fold -w 80 Anoste_pol.fasta > Anoste_pol_multi.fasta # Per convertire file fasta in multi line di 80 (BUSCO non accetta single line)
+rm Anoste_pol.fasta
+mv Anoste_pol_multi.fasta Anoste_pol.fasta
+busco -m geno -l $BUSCO/diptera_odb12 -c 9 -o Anoste_pol -i Anoste_pol.fasta
+
+conda activate kat
+kat comp -t 9 -o Anoste_pol_kat 'SRR11672503_1_paired.fastq SRR11672503_2_paired.fastq' Anoste_pol.fasta
 

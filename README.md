@@ -128,13 +128,17 @@ hypo -d Anoste_raw.fasta -r @reads.txt -s 227054799 -c 136 -b Anoste_raw_sr_sort
 ```
 mv hypo_Anoste_raw.fasta Anoste_pol.fasta # Cambiare denominazione del risultato di hypo
 
-conda activate sequence # BUSCO
+```bash
+# BUSCO dopo polishing 
+conda activate sequence 
 export NUMEXPR_MAX_THREADS=80
 fold -w 80 Anoste_pol.fasta > Anoste_pol_multi.fasta # Per convertire file fasta in multi line di 80 (BUSCO non accetta single line)
 rm Anoste_pol.fasta
 mv Anoste_pol_multi.fasta Anoste_pol.fasta
 busco -m geno -l $BUSCO/diptera_odb12 -c 9 -o Anoste_pol -i Anoste_pol.fasta
-
+```
+```bash
+# Analisi QC kat
 conda activate kat
 kat comp -t 9 -o Anoste_pol_kat 'SRR11672503_1_paired.fastq SRR11672503_2_paired.fastq' Anoste_pol.fasta
-
+```

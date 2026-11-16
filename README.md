@@ -166,7 +166,26 @@ blastn -query <ASSEMBLY> -db <PATH/TO/nt/> -outfmt '6 qseqid staxids bitscore st
 # Construction a BlobDB data structure and assembly visualisation
 ```bash
 blobtools create -i Anoste_pol.fasta -b Anoste_pol_sorted.bam -t Anoste_blast.tsv -o Anoste_blob # Sequence enviroment
+blobtools view -i <JSON_FILE> -o <OUTPUT_PREFIX>
+blobtools plot -i <JSON_FILE> -o <OUTPUT_PREFIX>
 blobtools view -i Anoste_blob.blobDB.json -o Anoste
 blobtools plot -i Anoste_blob.blobDB.json -o Anoste
 ```
+grep -v '^#' Anoste.Anoste_blob.blobDB.table.txt | awk '$6 != "Arthropoda" {print $1}' > contaminants_contigs.txt #Selezionare tutte le contigs contaminanti (non artropoda) e raccoglierle in un file che servirà come file patterns.txt nel comando successivo awk
+awk '{ if ((NR>1)&&($0~/^>/)) { printf("\n%s", $0); } else if (NR==1) { printf("%s", $0); } else { printf("\t%s", $0); } }' in.fa | grep -w -v -Ff patterns.txt - | tr "\t" "\n" > out.fa
+awk '{ if ((NR>1)&&($0~/^>/)) { printf("\n%s", $0); } else if (NR==1) { printf("%s", $0); } else { printf("\t%s", $0); } }' Anoste_pol.fasta | grep -w -v -Ff contaminants_contigs.txt - | tr "\t" "\n" > Anoste_pol_nocont.fa # Creato file fasta senza contaminanti
+cd ..
+mkdir 03_scaffolding (/Laboratorio-Genomica-Comparata/03_GenomeAssembly/03_scaffolding)
+ln -s ../02_contaminants/Anoste_pol_nocont.fa
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/00_data/01_Anoste_reference/GCF_013141755.1_UCI_ANSTEP_V1.0_genomic.fna
+conda activate assembly # Qui c'è ragtag
+
+# Reference-based scaffolding
+```bash
+ragtag.py correct -t 20 <REFERENCE_GENOME> <DRAFT_GENOME>
+ragtag.py scaffold -C -t 20 -o <OUTPUT_DIR> <REFERENCE_GENOME> <CORRECTED_DRAFTGENOME>
+ragtag.py correct -t 10 GCF_013141755.1_UCI_ANSTEP_V1.0_genomic.fna Anoste_pol_nocont.fa
+ragtag.py scaffold -C -t 10 -o Anoste_chr GCF_013141755.1_UCI_ANSTEP_V1.0_genomic.fna ragtag_output/ragtag.correct.fasta
+```
+
 

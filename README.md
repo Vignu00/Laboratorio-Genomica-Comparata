@@ -166,4 +166,7 @@ blastn -query <ASSEMBLY> -db <PATH/TO/nt/> -outfmt '6 qseqid staxids bitscore st
 # Construction a BlobDB data structure and assembly visualisation
 ```bash
 blobtools create -i Anoste_pol.fasta -b Anoste_pol_sorted.bam -t Anoste_blast.tsv -o Anoste_blob # Sequence enviroment
+blobtools view -i Anoste_blob.blobDB.json -o Anoste
+blobtools plot -i Anoste_blob.blobDB.json -o Anoste
+```
 

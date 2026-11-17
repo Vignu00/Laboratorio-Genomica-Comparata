@@ -187,5 +187,10 @@ ragtag.py scaffold -C -t 20 -o <OUTPUT_DIR> <REFERENCE_GENOME> <CORRECTED_DRAFTG
 ragtag.py correct -t 10 GCF_013141755.1_UCI_ANSTEP_V1.0_genomic.fna Anoste_pol_nocont.fa
 ragtag.py scaffold -C -t 10 -o Anoste_chr GCF_013141755.1_UCI_ANSTEP_V1.0_genomic.fna ragtag_output/ragtag.correct.fasta
 ```
+cd Anoste_chr/
+grep ">" ragtag.scaffold.fasta | head # Selezionare le prime 3 righe (veri cromosomi)
+cd ..
+nano chromosome.txt # File di patterns dentro incollare le 3 righe >NC_050201.1_RagTag >NC_050202.1_RagTag >NC_050203.1_RagTag
+grep -A1 -Ff chromosome.txt Anoste_chr/ragtag.scaffold.fasta > Anoste_chr.fasta
 
 

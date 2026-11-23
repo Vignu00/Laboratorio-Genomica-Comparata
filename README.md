@@ -214,8 +214,8 @@ conda activate assembly
 maker -CTL
 nano maker_opts.ctl # Dentro modificare: 
 
-```bash
 # maker_opts.ctl
+```bash
 #-----Genome (these are always required)
 genome=Anoste_chr.fasta #genome sequence (fasta file or fasta embeded in GFF3 file)
 organism_type=eukaryotic #eukaryotic or prokaryotic. Default is eukaryotic

@@ -193,4 +193,15 @@ cd ..
 nano chromosome.txt # File di patterns dentro incollare le 3 righe >NC_050201.1_RagTag >NC_050202.1_RagTag >NC_050203.1_RagTag
 grep -A1 -Ff chromosome.txt Anoste_chr/ragtag.scaffold.fasta > Anoste_chr.fasta
 
+# Genome annotation
 
+mkdir 04_GenomeAnnotation
+cd 04_GenomeAnnotation/
+mkdir 00_round1
+mkdir 01_round2
+mkdir 02_round3
+cd 00_round1/
+ln -s ../../03_GenomeAssembly/03_scaffolding/Anoste_chr.fasta
+conda activate assembly
+maker -CTL
+nano maker_opts.ctl # Dentro modificare 

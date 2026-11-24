@@ -296,5 +296,83 @@ clean_up=0 #removes theVoid directory with individual analysis files, 1 = yes, 0
 TMP= #specify a directory other than the system default temporary directory for temporary files
 ```
 
+```bash
+maker -base <OUTPUT PREFIX> # Annotazione
+maker -base Anoste_rnd1
+```
+cp /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/04_GenomeAnnotation/00_round1/Anoste_rnd1.maker.output/maker1.tar.gz .
+tar -z -xf maker1.tar.gz # Unzippare archivio precedentemente linkato
+
+```bash
+fasta_merge -d Anoste_rnd1_master_datastore_index.log # To create a gff3 and a transcript/protein file
+gff3_merge -d Anoste_rnd1_master_datastore_index.log
+```
+
+# Controllo qualità su annotato (fai busco su proteoma)
+
+```bash # GAAS enviroment
+agat_sp_statistics.pl --gff file.gff -o <output_file>        #Summary statistics of gene models
+agat_sq_repeats_analyzer.pl -i <input_file> -o <output_file> #Summary statistics of repeats
+agat_sp_statistics.pl --gff Anoste_rnd1.all.gff -o Anoste_rnd1_model_stats.log
+agat_sq_repeats_analyzer.pl -i Anoste_rnd1.all.gff -o Anoste_rnd1_repeats.log
+```
+conda activate assembly
+nano SNAP.sh # Creazione script dentro inserire:
+```bash
+maker2zff -c 0 -e 0 -l 80 -x 0.1 -d ../Anoste_rnd1_master_datastore_index.log #To extract gene models based on multiple filter criteria.>
+fathom genome.ann genome.dna -gene-stats > Anoste_rnd1_fathom.stats #Print some summary statistics of the selected gene models
+fathom genome.ann genome.dna -validate #Validate gene models and print summary statistics. Output is in stdout and cannot be redirect>
+fathom genome.ann genome.dna -categorize 1000 #Extract gene models together with 1000 bp at both ends for training
+fathom uni.ann uni.dna -export 1000 -plus #Export and convert unique genes to strand plus. Typically, only the unique genes are used >
+mkdir forge
+cd forge
+forge ../export.ann ../export.dna #call the parameter estimation program, better in another directory
+cd ..
+hmm-assembler.pl Anoste_rnd1 forge > Anoste_rnd1.hmm
+```
+mkdir SNAP
+cd SNAP/
+mv ../SNAP.sh .
+bash SNAP.sh
+
+cd Laboratorio-Genomica-Comparata
+mkdir 00_data
+cd 00_data/
+mkdir 03_dataset
+cd 03_dataset/
+nano dataset_new.tsv # Dentro inserire dati d'interesse:
+GCF_943734735.2	Anopheles gambiae	Anogam
+GCF_002204515.2	Aedes aegypti	Aedaeg
+GCF_015732765.1	Culex quinquefasciatus	Culqui
+GCF_029784135.1	Toxorhynchites rutilus septentrionalis	Toxrut
+GCF_943734655.1	Sabethes cyaneus	Sabcya
+
+ln -s /home/PERSONALE/mirko.martini3/Lab_CompGeno/00_practice/99_scripts/download_dataset.sh . # Script per download dataset inserito
+
+```bash
+#!/bin/bash
+
+#This script downloads genomes and relative gff from NCBI datasets creating ready to use folders
+
+AN2name=$1
+
+mkdir 00_genome
+mkdir 01_gff
+while IFS=$'\t' read -r AN sname ID; do
+        echo $AN
+        #download specifying the name of the folder
+        datasets download genome accession "$AN" --filename "$ID".zip --include genome,gff3
+        #unzip specifying the name of the folder
+        unzip "$ID".zip -d "$ID"
+        #rename the two file of interest
+        mv "$ID"/ncbi_dataset/data/"$AN"/*.fna 00_genome/"$ID".fna
+        mv "$ID"/ncbi_dataset/data/"$AN"/*.gff 01_gff/"$ID".gff
+        #delete the folder
+        rm -r "$ID"/
+done < "$AN2name"
+```
+```bash
+bash download_dataset.sh dataset_new.tsv # Esecuzione script 
+```
 
 

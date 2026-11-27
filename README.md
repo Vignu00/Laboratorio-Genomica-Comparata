@@ -177,6 +177,16 @@ blobtools plot -i Anoste_blob.blobDB.json -o Anoste
 grep -v '^#' Anoste.Anoste_blob.blobDB.table.txt | awk '$6 != "Arthropoda" {print $1}' > contaminants_contigs.txt #Selezionare tutte le contigs contaminanti (non artropoda) e raccoglierle in un file che servirà come file patterns.txt nel comando successivo awk
 awk '{ if ((NR>1)&&($0~/^>/)) { printf("\n%s", $0); } else if (NR==1) { printf("%s", $0); } else { printf("\t%s", $0); } }' in.fa | grep -w -v -Ff patterns.txt - | tr "\t" "\n" > out.fa
 awk '{ if ((NR>1)&&($0~/^>/)) { printf("\n%s", $0); } else if (NR==1) { printf("%s", $0); } else { printf("\t%s", $0); } }' Anoste_pol.fasta | grep -w -v -Ff contaminants_contigs.txt - | tr "\t" "\n" > Anoste_pol_nocont.fa # Creato file fasta senza contaminanti
+
+```bash
+# BUSCO dopo decontaminazione  
+conda activate sequence 
+export NUMEXPR_MAX_THREADS=80
+fold -w 80 Anoste_pol_nocont.fa > Anoste_pol_nocont_multi.fasta # Per convertire file fasta in multi line di 80 (BUSCO non accetta single line)
+rm Anoste_pol_nocont.fa
+mv Anoste_pol_nocont_multi.fasta Anoste_pol_nocont.fasta
+busco -m geno -l $BUSCO/diptera_odb12 -c 15 -o Anoste_pol_nocont -i Anoste_pol_nocont.fasta
+```
 cd ..
 mkdir 03_scaffolding (/Laboratorio-Genomica-Comparata/03_GenomeAssembly/03_scaffolding)
 ln -s ../02_contaminants/Anoste_pol_nocont.fa
@@ -196,6 +206,16 @@ grep ">" ragtag.scaffold.fasta | head # Selezionare le prime 3 righe (veri cromo
 cd ..
 nano chromosome.txt # File di patterns dentro incollare le 3 righe >NC_050201.1_RagTag >NC_050202.1_RagTag >NC_050203.1_RagTag
 grep -A1 -Ff chromosome.txt Anoste_chr/ragtag.scaffold.fasta > Anoste_chr.fasta
+
+```bash
+# BUSCO dopo scaffolding 
+conda activate sequence 
+export NUMEXPR_MAX_THREADS=80
+fold -w 80 Anoste_chr.fasta > Anoste_chr_multi.fasta # Per convertire file fasta in multi line di 80 (BUSCO non accetta single line)
+rm Anoste_chr.fasta
+mv Anoste_chr_multi.fasta Anoste_chr.fasta
+busco -m geno -l $BUSCO/diptera_odb12 -c 15 -o Anoste_chr_busco -i Anoste_chr.fasta
+```
 
 # Genome annotation
 
@@ -308,13 +328,20 @@ fasta_merge -d Anoste_rnd1_master_datastore_index.log # To create a gff3 and a t
 gff3_merge -d Anoste_rnd1_master_datastore_index.log
 ```
 
-# Controllo qualità su annotato (fai busco su proteoma)
+# Controllo qualità su annotato
 
 ```bash # GAAS enviroment
 agat_sp_statistics.pl --gff file.gff -o <output_file>        #Summary statistics of gene models
 agat_sq_repeats_analyzer.pl -i <input_file> -o <output_file> #Summary statistics of repeats
 agat_sp_statistics.pl --gff Anoste_rnd1.all.gff -o Anoste_rnd1_model_stats.log
 agat_sq_repeats_analyzer.pl -i Anoste_rnd1.all.gff -o Anoste_rnd1_repeats.log
+```
+
+```bash
+# BUSCO su proteoma 
+conda activate sequence 
+export NUMEXPR_MAX_THREADS=80
+busco -m prot -l $BUSCO/diptera_odb12 -c 15 -o Anoste_rnd1_prot_busco -i Anoste_rnd1.all.maker.proteins.fasta 
 ```
 conda activate assembly
 nano SNAP.sh # Creazione script dentro inserire:
